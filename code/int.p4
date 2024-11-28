@@ -4,6 +4,7 @@
 
 const bit<16> TYPE_IPV4 = 0x800;
 const bit<8> IP_PROTO = 253;
+const bit<8> IP_PROTO_TCP = 6;
 
 #define MAX_HOPS 10
 
@@ -48,6 +49,19 @@ header ipv4_h {
     ip4Addr_v dstAddr;
 }
 
+header tcp_h {
+    bit<16> srcPort;
+    bit<16> dstPort;
+    bit<32> seqNo;
+    bit<32> ackNo;
+    bit<4>  dataOffset;
+    bit<4>  reserved;
+    bit<8>  flags;
+    bit<16> window;
+    bit<16> checksum;
+    bit<16> urgentPtr;
+}
+
 header nodeCount_h{
     bit<16>  count;
 }
@@ -81,6 +95,7 @@ struct metadata {
 struct headers {
     ethernet_h         ethernet;
     ipv4_h             ipv4;
+    tcp_h              tcp;
     nodeCount_h        nodeCount;
     InBandNetworkTelemetry_h[MAX_HOPS] INT;
 }
@@ -108,10 +123,16 @@ parser MyParser(packet_in packet,
 
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
-        transition select(hdr.ipv4.protocol){
+        transition select(hdr.ipv4.protocol) {
+            IP_PROTO_TCP: parse_tcp;
             IP_PROTO: parse_count;
             default: accept;
         }
+    }
+
+    state parse_tcp {
+        packet.extract(hdr.tcp);
+        transition accept;
     }
 
     state parse_count{
@@ -176,6 +197,13 @@ control MyIngress(inout headers hdr,
     apply {
         if (hdr.ipv4.isValid()) {
             ipv4_lpm.apply();
+            if (hdr.tcp.dstPort == 5001) {
+                standard_metadata.priority = (bit<3>)0; // Fila 0
+            } 
+            
+            else if (hdr.tcp.dstPort == 5002) {
+                standard_metadata.priority = (bit<3>)7; // Fila 7
+            }
         }
     }
 }
@@ -187,6 +215,8 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
+
+    register<bit<32>>(8) QueueID;
 
     action add_swtrace(switchID_v swid) { 
         hdr.nodeCount.count = hdr.nodeCount.count + 1;
@@ -215,6 +245,9 @@ control MyEgress(inout headers hdr,
     }
     
     apply {
+        
+        QueueID.write((bit<32>)standard_metadata.qid, 1);
+
         if (hdr.nodeCount.isValid()) {
             swtrace.apply();
         }
@@ -253,6 +286,7 @@ control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
+        packet.emit(hdr.tcp);
         packet.emit(hdr.nodeCount);
         packet.emit(hdr.INT);                 
     }

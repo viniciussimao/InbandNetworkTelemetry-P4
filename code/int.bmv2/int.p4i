@@ -86,6 +86,17 @@ match_kind {
     /// Longest-prefix match.
     lpm
 }
+
+/// Static assert evaluates a boolean expression
+/// at compilation time.  If the expression evaluates to
+/// false, compilation is stopped and the corresponding message is printed.
+/// The function returns a boolean, so that it can be used
+/// as a global constant value in a program, e.g.:
+/// const bool _check = static_assert(V1MODEL_VERSION > 20180000, "Expected a v1 model version >= 20180000");
+extern bool static_assert(bool check, string message);
+
+/// Like the above but using a default message.
+extern bool static_assert(bool check);
 # 3 "/vagrant/code/int.p4" 2
 # 1 "/usr/local/share/p4c/p4include/v1model.p4" 1
 /*
@@ -219,6 +230,8 @@ struct standard_metadata_t {
     /// set packet priority
     @alias("intrinsic_metadata.priority")
     bit<3> priority;
+    @alias("queueing_metadata.qid")
+    bit<5> qid;
 }
 
 enum CounterType {
@@ -636,35 +649,36 @@ extern void verify_checksum_with_payload<T, O>(in bool condition, in T data, in 
 extern void update_checksum_with_payload<T, O>(in bool condition, in T data, inout O checksum, HashAlgorithm algo);
 
 /***
- * clone is in most ways identical to the clone_preserving_field_list operation, with the
- * only difference being that it never preserves any user-defined
- * metadata fields with the cloned packet.  It is equivalent to
- * calling clone_preserving_field_list with the same type and session parameter values,
- * with empty data.
+ * clone is in most ways identical to the clone_preserving_field_list
+ * operation, with the only difference being that it never preserves
+ * any user-defined metadata fields with the cloned packet.  It is
+ * equivalent to calling clone_preserving_field_list with the same
+ * type and session parameter values, with empty data.
  */
 extern void clone(in CloneType type, in bit<32> session);
 
 @deprecated("Please use 'resubmit_preserving_field_list' instead")
 extern void resubmit<T>(in T data);
 /***
- * Calling resubmit_preserving_field_list during execution of the ingress
- * control will cause the packet to be
- * resubmitted, i.e. it will begin processing again with the parser,
- * with the contents of the packet exactly as they were when it last
- * began parsing.  The only difference is in the value of the
- * standard_metadata instance_type field, and any user-defined
- * metadata fields that the resubmit operation causes to be
- * preserved.
+ * Calling resubmit_preserving_field_list during execution of the
+ * ingress control will cause the packet to be resubmitted, i.e. it
+ * will begin processing again with the parser, with the contents of
+ * the packet exactly as they were when it last began parsing.  The
+ * only difference is in the value of the standard_metadata
+ * instance_type field, and any user-defined metadata fields that the
+ * resubmit_preserving_field_list operation causes to be preserved.
  *
  * The user metadata fields that are tagged with @field_list(index) will
  * be sent to the parser together with the packet.
  *
- * Calling resubmit is only supported in the ingress control.  There
- * is no way to undo its effects once it has been called.  If resubmit
- * is called multiple times during a single execution of the ingress
- * control, only one packet is resubmitted, and only the data from the
- * last such call is preserved.  See the v1model architecture
- * documentation (Note 1) for more details.
+ * Calling resubmit_preserving_field_list is only supported in the
+ * ingress control.  There is no way to undo its effects once it has
+ * been called.  If resubmit_preserving_field_list is called multiple
+ * times during a single execution of the ingress control, only one
+ * packet is resubmitted, and only the user-defined metadata fields
+ * specified by the field list index from the last such call are
+ * preserved.  See the v1model architecture documentation (Note 1) for
+ * more details.
  *
  * For example, the user metadata fields can be annotated as follows:
  * struct UM {
@@ -685,23 +699,25 @@ extern void resubmit_preserving_field_list(bit<8> index);
 extern void recirculate<T>(in T data);
 /***
  * Calling recirculate_preserving_field_list during execution of the
- * egress control will cause the packet to be
- * recirculated, i.e. it will begin processing again with the parser,
- * with the contents of the packet as they are created by the
- * deparser.  Recirculated packets can be distinguished from new
- * packets in ingress processing by the value of the standard_metadata
- * instance_type field.  The caller may request that some user-defined
- * metadata fields be preserved with the recirculated packet.
+ * egress control will cause the packet to be recirculated, i.e. it
+ * will begin processing again with the parser, with the contents of
+ * the packet as they are created by the deparser.  Recirculated
+ * packets can be distinguished from new packets in ingress processing
+ * by the value of the standard_metadata instance_type field.  The
+ * caller may request that some user-defined metadata fields be
+ * preserved with the recirculated packet.
  *
  * The user metadata fields that are tagged with @field_list(index) will be
  * sent to the parser together with the packet.
  *
- * Calling recirculate is only supported in the egress control.  There
- * is no way to undo its effects once it has been called.  If
- * recirculate is called multiple times during a single execution of
- * the egress control, only one packet is recirculated, and only the
- * data from the last such call is preserved.  See the v1model
- * architecture documentation (Note 1) for more details.
+ * Calling recirculate_preserving_field_list is only supported in the
+ * egress control.  There is no way to undo its effects once it has
+ * been called.  If recirculate_preserving_field_list is called
+ * multiple times during a single execution of the egress control,
+ * only one packet is recirculated, and only the user-defined metadata
+ * fields specified by the field list index from the last such call
+ * are preserved.  See the v1model architecture documentation (Note 1)
+ * for more details.
  */
 extern void recirculate_preserving_field_list(bit<8> index);
 
@@ -709,12 +725,12 @@ extern void recirculate_preserving_field_list(bit<8> index);
 extern void clone3<T>(in CloneType type, in bit<32> session, in T data);
 
 /***
- * Calling clone_preserving_field_list during execution of the ingress or egress control
- * will cause the packet to be cloned, sometimes also called
- * mirroring, i.e. zero or more copies of the packet are made, and
- * each will later begin egress processing as an independent packet
- * from the original packet.  The original packet continues with its
- * normal next steps independent of the clone(s).
+ * Calling clone_preserving_field_list during execution of the ingress
+ * or egress control will cause the packet to be cloned, sometimes
+ * also called mirroring, i.e. zero or more copies of the packet are
+ * made, and each will later begin egress processing as an independent
+ * packet from the original packet.  The original packet continues
+ * with its normal next steps independent of the clone(s).
  *
  * The session parameter is an integer identifying a clone session id
  * (sometimes called a mirror session id).  The control plane software
@@ -731,15 +747,16 @@ extern void clone3<T>(in CloneType type, in bit<32> session, in T data);
  * The user metadata fields that are tagged with @field_list(index) will be
  * sent to the parser together with a clone of the packet.
  *
- * If clone_preserving_field_list is called during ingress processing, the first parameter
- * must be CloneType.I2E.  If clone_preserving_field_list is called during egress
- * processing, the first parameter must be CloneType.E2E.
+ * If clone_preserving_field_list is called during ingress processing,
+ * the first parameter must be CloneType.I2E.  If
+ * clone_preserving_field_list is called during egress processing, the
+ * first parameter must be CloneType.E2E.
  *
  * There is no way to undo its effects once it has been called.  If
- * there are multiple calls to clone_preserving_field_list and/or clone during a single
- * execution of the same ingress (or egress) control, only the last
- * clone session and data are used.  See the v1model architecture
- * documentation (Note 1) for more details.
+ * there are multiple calls to clone_preserving_field_list and/or
+ * clone during a single execution of the same ingress (or egress)
+ * control, only the last clone session and index are used.  See the
+ * v1model architecture documentation (Note 1) for more details.
  */
 extern void clone_preserving_field_list(in CloneType type, in bit<32> session, bit<8> index);
 
@@ -872,6 +889,7 @@ package V1Switch<H, M>(Parser<H, M> p,
 
 const bit<16> TYPE_IPV4 = 0x800;
 const bit<8> IP_PROTO = 253;
+const bit<8> IP_PROTO_TCP = 6;
 
 
 
@@ -916,6 +934,19 @@ header ipv4_h {
     ip4Addr_v dstAddr;
 }
 
+header tcp_h {
+    bit<16> srcPort;
+    bit<16> dstPort;
+    bit<32> seqNo;
+    bit<32> ackNo;
+    bit<4> dataOffset;
+    bit<4> reserved;
+    bit<8> flags;
+    bit<16> window;
+    bit<16> checksum;
+    bit<16> urgentPtr;
+}
+
 header nodeCount_h{
     bit<16> count;
 }
@@ -949,6 +980,7 @@ struct metadata {
 struct headers {
     ethernet_h ethernet;
     ipv4_h ipv4;
+    tcp_h tcp;
     nodeCount_h nodeCount;
     InBandNetworkTelemetry_h[10] INT;
 }
@@ -976,10 +1008,16 @@ parser MyParser(packet_in packet,
 
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
-        transition select(hdr.ipv4.protocol){
+        transition select(hdr.ipv4.protocol) {
+            IP_PROTO_TCP: parse_tcp;
             IP_PROTO: parse_count;
             default: accept;
         }
+    }
+
+    state parse_tcp {
+        packet.extract(hdr.tcp);
+        transition accept;
     }
 
     state parse_count{
@@ -1044,6 +1082,13 @@ control MyIngress(inout headers hdr,
     apply {
         if (hdr.ipv4.isValid()) {
             ipv4_lpm.apply();
+            if (hdr.tcp.dstPort == 5001) {
+                standard_metadata.priority = (bit<3>)0; // Fila 0
+            }
+
+            else if (hdr.tcp.dstPort == 5002) {
+                standard_metadata.priority = (bit<3>)7; // Fila 7
+            }
         }
     }
 }
@@ -1055,6 +1100,8 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
+
+    register<bit<32>>(8) QueueID;
 
     action add_swtrace(switchID_v swid) {
         hdr.nodeCount.count = hdr.nodeCount.count + 1;
@@ -1083,6 +1130,9 @@ control MyEgress(inout headers hdr,
     }
 
     apply {
+
+        QueueID.write((bit<32>)standard_metadata.qid, 1);
+
         if (hdr.nodeCount.isValid()) {
             swtrace.apply();
         }
@@ -1121,6 +1171,7 @@ control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
+        packet.emit(hdr.tcp);
         packet.emit(hdr.nodeCount);
         packet.emit(hdr.INT);
     }

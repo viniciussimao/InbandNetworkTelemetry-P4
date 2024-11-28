@@ -1,1 +1,1 @@
-{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/leandro/vagrant/int","disabled":false,"__vagrantfile":true}}}
+{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/vinicius/projeto/InbandNetworkTelemetry-P4","disabled":false,"__vagrantfile":true}}}

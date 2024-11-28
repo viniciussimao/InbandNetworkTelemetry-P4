@@ -9,8 +9,8 @@ Vagrant.configure("2") do |config|
     end
 
     config.vm.define "bmv2-1" do |switch|
-        switch.vm.box = "leandrocalmeida/bmv2-p4"
-        switch.vm.box_version = "03"
+        switch.vm.box = "viniciussimao/bmv2-p4"
+        switch.vm.box_version = "01"
         switch.vm.hostname = "bmv2-1"
         
         #management network (IP - 192.168.56.200)
@@ -37,8 +37,8 @@ Vagrant.configure("2") do |config|
     end
 
     config.vm.define "bmv2-2" do |switch|
-        switch.vm.box = "leandrocalmeida/bmv2-p4"
-        switch.vm.box_version = "03"
+        switch.vm.box = "viniciussimao/bmv2-p4"
+        switch.vm.box_version = "01"
         switch.vm.hostname = "bmv2-2"
         
         #management network (IP - 192.168.56.200)
@@ -52,10 +52,15 @@ Vagrant.configure("2") do |config|
         #Internal network between bmv2 switch2 and host-2.
         switch.vm.network "private_network", auto_config: false,
             virtualbox__intnet: "S2-H2"
+        
+        #Internal network between bmv2 switch2 and c-plane.
+        switch.vm.network "private_network", auto_config: false,
+            virtualbox__intnet: "S2-CP"
 
         switch.vm.provider "virtualbox" do |v|
             v.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
             v.customize ["modifyvm", :id, "--nicpromisc4", "allow-all"]
+            v.customize ["modifyvm", :id, "--nicpromisc5", "allow-all"]
         end
         
         switch.vm.provision "ansible" do |ansible| 
@@ -83,6 +88,15 @@ Vagrant.configure("2") do |config|
         end
     end
 
-
+    config.vm.define "c-plane" do |h|
+        h.vm.box = "viniciussimao/bmv2-p4"
+        h.vm.box_version = "01"
+        h.vm.hostname = "c-plane"
+        h.vm.network "private_network", ip: "192.168.50.13", mac: "0800279ac3d7",
+            virtualbox__intnet: "S2-CP"
+        h.vm.provision "ansible" do |ansible| 
+            ansible.playbook = "host-setup/cplane-playbook.yml"
+        end
+    end
 
 end

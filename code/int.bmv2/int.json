@@ -4,8 +4,9 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
-        ["userMetadata._ingress_metadata_count0", 16, false],
-        ["userMetadata._parser_metadata_remaining1", 16, false]
+        ["tmp", 32, false],
+        ["metadata._ingress_metadata_count0", 16, false],
+        ["metadata._parser_metadata_remaining1", 16, false]
       ]
     },
     {
@@ -28,7 +29,8 @@
         ["checksum_error", 1, false],
         ["parser_error", 32, false],
         ["priority", 3, false],
-        ["_padding", 3, false]
+        ["qid", 5, false],
+        ["_padding", 6, false]
       ]
     },
     {
@@ -59,15 +61,31 @@
       ]
     },
     {
-      "name" : "nodeCount_h",
+      "name" : "tcp_h",
       "id" : 4,
+      "fields" : [
+        ["srcPort", 16, false],
+        ["dstPort", 16, false],
+        ["seqNo", 32, false],
+        ["ackNo", 32, false],
+        ["dataOffset", 4, false],
+        ["reserved", 4, false],
+        ["flags", 8, false],
+        ["window", 16, false],
+        ["checksum", 16, false],
+        ["urgentPtr", 16, false]
+      ]
+    },
+    {
+      "name" : "nodeCount_h",
+      "id" : 5,
       "fields" : [
         ["count", 16, false]
       ]
     },
     {
       "name" : "InBandNetworkTelemetry_h",
-      "id" : 5,
+      "id" : 6,
       "fields" : [
         ["swid", 31, false],
         ["ingress_port", 9, false],
@@ -112,78 +130,85 @@
       "pi_omit" : true
     },
     {
-      "name" : "nodeCount",
+      "name" : "tcp",
       "id" : 4,
+      "header_type" : "tcp_h",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "nodeCount",
+      "id" : 5,
       "header_type" : "nodeCount_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "INT[0]",
-      "id" : 5,
-      "header_type" : "InBandNetworkTelemetry_h",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
-      "name" : "INT[1]",
       "id" : 6,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[2]",
+      "name" : "INT[1]",
       "id" : 7,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[3]",
+      "name" : "INT[2]",
       "id" : 8,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[4]",
+      "name" : "INT[3]",
       "id" : 9,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[5]",
+      "name" : "INT[4]",
       "id" : 10,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[6]",
+      "name" : "INT[5]",
       "id" : 11,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[7]",
+      "name" : "INT[6]",
       "id" : 12,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[8]",
+      "name" : "INT[7]",
       "id" : 13,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "INT[9]",
+      "name" : "INT[8]",
       "id" : 14,
+      "header_type" : "InBandNetworkTelemetry_h",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "INT[9]",
+      "id" : 15,
       "header_type" : "InBandNetworkTelemetry_h",
       "metadata" : false,
       "pi_omit" : true
@@ -195,7 +220,7 @@
       "id" : 0,
       "header_type" : "InBandNetworkTelemetry_h",
       "size" : 10,
-      "header_ids" : [5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+      "header_ids" : [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     }
   ],
   "header_union_types" : [],
@@ -203,13 +228,13 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6],
-    ["ParserInvalidArgument", 7]
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5],
+    ["ParserInvalidArgument", 6]
   ],
   "enums" : [],
   "parsers" : [
@@ -270,6 +295,12 @@
           "transitions" : [
             {
               "type" : "hexstr",
+              "value" : "0x06",
+              "mask" : null,
+              "next_state" : "parse_tcp"
+            },
+            {
+              "type" : "hexstr",
               "value" : "0xfd",
               "mask" : null,
               "next_state" : "parse_count"
@@ -289,8 +320,32 @@
           ]
         },
         {
-          "name" : "parse_count",
+          "name" : "parse_tcp",
           "id" : 2,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "tcp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_count",
+          "id" : 3,
           "parser_ops" : [
             {
               "parameters" : [
@@ -305,7 +360,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "userMetadata._parser_metadata_remaining1"]
+                  "value" : ["scalars", "metadata._parser_metadata_remaining1"]
                 },
                 {
                   "type" : "field",
@@ -338,7 +393,7 @@
         },
         {
           "name" : "parse_int",
-          "id" : 3,
+          "id" : 4,
           "parser_ops" : [
             {
               "parameters" : [
@@ -353,7 +408,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "userMetadata._parser_metadata_remaining1"]
+                  "value" : ["scalars", "metadata._parser_metadata_remaining1"]
                 },
                 {
                   "type" : "expression",
@@ -367,7 +422,7 @@
                           "op" : "+",
                           "left" : {
                             "type" : "field",
-                            "value" : ["scalars", "userMetadata._parser_metadata_remaining1"]
+                            "value" : ["scalars", "metadata._parser_metadata_remaining1"]
                           },
                           "right" : {
                             "type" : "hexstr",
@@ -403,7 +458,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["scalars", "userMetadata._parser_metadata_remaining1"]
+              "value" : ["scalars", "metadata._parser_metadata_remaining1"]
             }
           ]
         }
@@ -417,24 +472,37 @@
       "id" : 0,
       "source_info" : {
         "filename" : "/vagrant/code/int.p4",
-        "line" : 252,
+        "line" : 285,
         "column" : 8,
         "source_fragment" : "MyDeparser"
       },
-      "order" : ["ethernet", "ipv4", "nodeCount", "INT[0]", "INT[1]", "INT[2]", "INT[3]", "INT[4]", "INT[5]", "INT[6]", "INT[7]", "INT[8]", "INT[9]"],
+      "order" : ["ethernet", "ipv4", "tcp", "nodeCount", "INT[0]", "INT[1]", "INT[2]", "INT[3]", "INT[4]", "INT[5]", "INT[6]", "INT[7]", "INT[8]", "INT[9]"],
       "primitives" : []
     }
   ],
   "meter_arrays" : [],
   "counter_arrays" : [],
-  "register_arrays" : [],
+  "register_arrays" : [
+    {
+      "name" : "MyEgress.QueueID",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "/vagrant/code/int.p4",
+        "line" : 219,
+        "column" : 25,
+        "source_fragment" : "QueueID"
+      },
+      "size" : 8,
+      "bitwidth" : 32
+    }
+  ],
   "calculations" : [
     {
       "name" : "calc",
       "id" : 0,
       "source_info" : {
         "filename" : "/vagrant/code/int.p4",
-        "line" : 230,
+        "line" : 263,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },
@@ -510,7 +578,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 152,
+            "line" : 173,
             "column" : 8,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -545,7 +613,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 156,
+            "line" : 177,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port"
           }
@@ -564,7 +632,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 157,
+            "line" : 178,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.srcAddr = hdr.ethernet.dstAddr"
           }
@@ -583,7 +651,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 158,
+            "line" : 179,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dstAddr = dstAddr"
           }
@@ -625,7 +693,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 159,
+            "line" : 180,
             "column" : 8,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
@@ -633,14 +701,66 @@
       ]
     },
     {
-      "name" : "NoAction",
+      "name" : "int201",
       "id" : 3,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "priority"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 201,
+            "column" : 16,
+            "source_fragment" : "standard_metadata.priority = (bit<3>)0"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "int205",
+      "id" : 4,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "priority"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x07"
+            }
+          ],
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 205,
+            "column" : 16,
+            "source_fragment" : "standard_metadata.priority = (bit<3>)7"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "NoAction",
+      "id" : 5,
       "runtime_data" : [],
       "primitives" : []
     },
     {
       "name" : "MyEgress.add_swtrace",
-      "id" : 4,
+      "id" : 6,
       "runtime_data" : [
         {
           "name" : "swid",
@@ -685,7 +805,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 192,
+            "line" : 222,
             "column" : 8,
             "source_fragment" : "hdr.nodeCount.count = hdr.nodeCount.count + 1"
           }
@@ -704,7 +824,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 193,
+            "line" : 223,
             "column" : 8,
             "source_fragment" : "hdr.INT.push_front(1)"
           }
@@ -719,7 +839,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 194,
+            "line" : 224,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].setValid()"
           }
@@ -738,7 +858,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 195,
+            "line" : 225,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].swid = swid"
           }
@@ -757,7 +877,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 196,
+            "line" : 226,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].ingress_port = (ingress_port_v)standard_metadata.ingress_port"
           }
@@ -776,7 +896,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 197,
+            "line" : 227,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].ingress_global_timestamp = (ingress_global_timestamp_v)standard_metadata.ingress_global_timestamp"
           }
@@ -795,7 +915,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 198,
+            "line" : 228,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].egress_port = (egress_port_v)standard_metadata.egress_port"
           }
@@ -814,7 +934,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 199,
+            "line" : 229,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].egress_spec = (egressSpec_v)standard_metadata.egress_spec"
           }
@@ -833,7 +953,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 200,
+            "line" : 230,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].egress_global_timestamp = (egress_global_timestamp_v)standard_metadata.egress_global_timestamp"
           }
@@ -852,7 +972,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 201,
+            "line" : 231,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].enq_timestamp = (enq_timestamp_v)standard_metadata.enq_timestamp"
           }
@@ -871,7 +991,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 202,
+            "line" : 232,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].enq_qdepth = (enq_qdepth_v)standard_metadata.enq_qdepth"
           }
@@ -890,7 +1010,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 203,
+            "line" : 233,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].deq_timedelta = (deq_timedelta_v)standard_metadata.deq_timedelta"
           }
@@ -909,7 +1029,7 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 204,
+            "line" : 234,
             "column" : 8,
             "source_fragment" : "hdr.INT[0].deq_qdepth = (deq_qdepth_v)standard_metadata.deq_qdepth"
           }
@@ -951,9 +1071,71 @@
           ],
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 206,
+            "line" : 236,
             "column" : 8,
             "source_fragment" : "hdr.ipv4.totalLen = hdr.ipv4.totalLen + 32"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "int249",
+      "id" : 7,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["standard_metadata", "qid"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffffffff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 249,
+            "column" : 22,
+            "source_fragment" : "(bit<32>)standard_metadata.qid"
+          }
+        },
+        {
+          "op" : "register_write",
+          "parameters" : [
+            {
+              "type" : "register_array",
+              "value" : "MyEgress.QueueID"
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00000001"
+            }
+          ],
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 249,
+            "column" : 8,
+            "source_fragment" : "QueueID.write((bit<32>)standard_metadata.qid, 1)"
           }
         }
       ]
@@ -965,7 +1147,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "/vagrant/code/int.p4",
-        "line" : 148,
+        "line" : 169,
         "column" : 8,
         "source_fragment" : "MyIngress"
       },
@@ -976,7 +1158,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 162,
+            "line" : 183,
             "column" : 10,
             "source_fragment" : "ipv4_lpm"
           },
@@ -996,17 +1178,75 @@
           "direct_meters" : null,
           "action_ids" : [2, 1, 0],
           "actions" : ["MyIngress.ipv4_forward", "MyIngress.drop", "NoAction"],
-          "base_default_next" : null,
+          "base_default_next" : "node_4",
           "next_tables" : {
-            "MyIngress.ipv4_forward" : null,
-            "MyIngress.drop" : null,
-            "NoAction" : null
+            "MyIngress.ipv4_forward" : "node_4",
+            "MyIngress.drop" : "node_4",
+            "NoAction" : "node_4"
           },
           "default_entry" : {
             "action_id" : 0,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "tbl_int201",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 201,
+            "column" : 43,
+            "source_fragment" : "="
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [3],
+          "actions" : ["int201"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "int201" : null
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_int205",
+          "id" : 2,
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 205,
+            "column" : 43,
+            "source_fragment" : "="
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [4],
+          "actions" : ["int205"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "int205" : null
+          },
+          "default_entry" : {
+            "action_id" : 4,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
           }
         }
       ],
@@ -1017,7 +1257,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 177,
+            "line" : 198,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -1034,6 +1274,58 @@
           },
           "false_next" : null,
           "true_next" : "MyIngress.ipv4_lpm"
+        },
+        {
+          "name" : "node_4",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 200,
+            "column" : 16,
+            "source_fragment" : "hdr.tcp.dstPort == 5001"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["tcp", "dstPort"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x1389"
+              }
+            }
+          },
+          "true_next" : "tbl_int201",
+          "false_next" : "node_6"
+        },
+        {
+          "name" : "node_6",
+          "id" : 2,
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 204,
+            "column" : 21,
+            "source_fragment" : "hdr.tcp.dstPort == 5002"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["tcp", "dstPort"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x138a"
+              }
+            }
+          },
+          "false_next" : null,
+          "true_next" : "tbl_int205"
         }
       ]
     },
@@ -1042,18 +1334,47 @@
       "id" : 1,
       "source_info" : {
         "filename" : "/vagrant/code/int.p4",
-        "line" : 187,
+        "line" : 215,
         "column" : 8,
         "source_fragment" : "MyEgress"
       },
-      "init_table" : "node_6",
+      "init_table" : "tbl_int249",
       "tables" : [
         {
-          "name" : "MyEgress.swtrace",
-          "id" : 1,
+          "name" : "tbl_int249",
+          "id" : 3,
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 209,
+            "line" : 249,
+            "column" : 8,
+            "source_fragment" : "QueueID.write((bit<32>)standard_metadata.qid, 1)"
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [7],
+          "actions" : ["int249"],
+          "base_default_next" : "node_11",
+          "next_tables" : {
+            "int249" : "node_11"
+          },
+          "default_entry" : {
+            "action_id" : 7,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "MyEgress.swtrace",
+          "id" : 4,
+          "source_info" : {
+            "filename" : "/vagrant/code/int.p4",
+            "line" : 239,
             "column" : 10,
             "source_fragment" : "swtrace"
           },
@@ -1064,7 +1385,7 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [4, 3],
+          "action_ids" : [6, 5],
           "actions" : ["MyEgress.add_swtrace", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -1072,7 +1393,7 @@
             "NoAction" : null
           },
           "default_entry" : {
-            "action_id" : 3,
+            "action_id" : 5,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -1082,11 +1403,11 @@
       "action_profiles" : [],
       "conditionals" : [
         {
-          "name" : "node_6",
-          "id" : 1,
+          "name" : "node_11",
+          "id" : 3,
           "source_info" : {
             "filename" : "/vagrant/code/int.p4",
-            "line" : 218,
+            "line" : 251,
             "column" : 12,
             "source_fragment" : "hdr.nodeCount.isValid()"
           },
@@ -1113,7 +1434,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "/vagrant/code/int.p4",
-        "line" : 230,
+        "line" : 263,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },
@@ -1173,6 +1494,10 @@
     [
       "intrinsic_metadata.priority",
       ["standard_metadata", "priority"]
+    ],
+    [
+      "queueing_metadata.qid",
+      ["standard_metadata", "qid"]
     ]
   ],
   "program" : "/vagrant/code/int.bmv2/int.p4i",
