@@ -197,13 +197,11 @@ control MyIngress(inout headers hdr,
     apply {
         if (hdr.ipv4.isValid()) {
             ipv4_lpm.apply();
-            if (hdr.tcp.dstPort == 5001) {
-                standard_metadata.priority = (bit<3>)0; // Fila 0
-            } 
-            
-            else if (hdr.tcp.dstPort == 5002) {
-                standard_metadata.priority = (bit<3>)7; // Fila 7
-            }
+            if (hdr.ipv4.srcAddr == 0xC0A8326E || hdr.tcp.dstPort == 5002 || hdr.ipv4.dstAddr == 0xC0A8326E) {
+    		standard_metadata.priority = (bit<3>)7;
+	    } else {
+    		standard_metadata.priority = (bit<3>)0;
+	    }
         }
     }
 }
