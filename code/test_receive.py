@@ -51,23 +51,24 @@ class nodeCount(Packet):
 
 # ================== PACKET HANDLER ==================
 def handle_pkt(pkt):
-    # Extrai timestamp do host
-    if HostINT in pkt:
-        host_timestamp = pkt[HostINT].timestamp
-        HOST_TIMESTAMP.set(host_timestamp)
+    if IP in pkt and pkt[IP].src == "192.168.50.11":
+        # Extrai timestamp do host
+        if HostINT in pkt:
+            host_timestamp = pkt[HostINT].timestamp
+            HOST_TIMESTAMP.set(host_timestamp)
 
-    # Processa dados INT de cada switch
-    if nodeCount in pkt:
-        for int_entry in pkt[nodeCount].INT:
-            switch_id = str(int_entry.switchID_t)
+        # Processa dados INT de cada switch
+        if nodeCount in pkt:
+            for int_entry in pkt[nodeCount].INT:
+                switch_id = str(int_entry.switchID_t)
             
-            # Atualiza métricas para cada switch
-            SWITCH_ENQ_QDEPTH.labels(switch_id=switch_id).set(int_entry.enq_qdepth)
-            SWITCH_INGRESS_TS.labels(switch_id=switch_id).set(int_entry.ingress_global_timestamp)
-            SWITCH_EGRESS_TS.labels(switch_id=switch_id).set(int_entry.egress_global_timestamp)
+                # Atualiza métricas para cada switch
+                SWITCH_ENQ_QDEPTH.labels(switch_id=switch_id).set(int_entry.enq_qdepth)
+                SWITCH_INGRESS_TS.labels(switch_id=switch_id).set(int_entry.ingress_global_timestamp)
+                SWITCH_EGRESS_TS.labels(switch_id=switch_id).set(int_entry.egress_global_timestamp)
 
-            # Debug (opcional)
-            print(f"Switch {switch_id} - Queue Depth: {int_entry.enq_qdepth}")
+                # Debug (opcional)
+                print(f"Switch {switch_id} - Queue Depth: {int_entry.enq_qdepth}")
 
 # ================== MAIN ==================
 def main():
