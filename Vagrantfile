@@ -92,7 +92,12 @@ Vagrant.configure("2") do |config|
         h.vm.box = "viniciussimao/bmv2-p4"
         h.vm.box_version = "01"
         h.vm.hostname = "c-plane"
-        h.vm.network "private_network", ip: "192.168.50.13", mac: "0800279ac3d7",
+        
+	# Redirecionamento de portas
+    	h.vm.network "forwarded_port", guest: 9090, host: 9090  # Prometheus
+    	h.vm.network "forwarded_port", guest: 3000, host: 3000  # Grafana
+	    h.vm.network "forwarded_port", guest: 8000, host: 8000
+	    h.vm.network "private_network", ip: "192.168.50.13", mac: "0800279ac3d7",
             virtualbox__intnet: "S2-CP"
         h.vm.provision "ansible" do |ansible| 
             ansible.playbook = "host-setup/cplane-playbook.yml"
