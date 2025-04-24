@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Configuração
+REPETICOES=600000
+IPERF_SERVER="192.168.50.12"
+
+contador=1
+
+while [ $contador -le $REPETICOES ]; do
+    echo "Esperando 1min para iniciar repetição $contador/$REPETICOES do iperf3..."
+    sleep 60
+    
+    iperf3 -c $IPERF_SERVER -t 120 -i 1
+    
+    echo "Repetição $contador/$REPETICOES finalizada"
+    echo ""
+    contador=$((contador + 1))
+done
+
+echo "Todas as $REPETICOES repetições foram concluídas"
